@@ -7,3 +7,8 @@ packages/react-components/src/shadcn/components/ui/input+desc.tsx
 packages/react-components/src/aidbox-ui.code-workspace
 CLAUDE.local.md
 COMPONENT_PATTERNS.md
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
