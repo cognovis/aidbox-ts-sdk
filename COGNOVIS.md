@@ -1,5 +1,9 @@
 # cognovis/aidbox-ts-sdk
 
+> Status: dormant as of 2026-04-20.
+>
+> Active work on this fork is paused. The current direction keeps adapter and builder work inside the Polaris monorepo and focuses shared infrastructure effort on `cognovis/codegen` plus `fhir-de` builder stabilization. Re-open this initiative only if duplicated Aidbox client logic across multiple consumers becomes a concrete maintenance burden again.
+
 This is a long-lived cognovis fork of [HealthSamurai/aidbox-ts-sdk](https://github.com/HealthSamurai/aidbox-ts-sdk) — the TypeScript SDK for Aidbox / FHIR servers.
 
 ## Why we fork
@@ -39,7 +43,7 @@ We fork-first so we can **ship in production on our fork while upstream PRs go t
 ### Current long-lived branches
 
 - `master` — upstream mirror, currently at `746c422`.
-- `cognovis/next` — upstream + this infra (initial commit).
+- `cognovis/next` — upstream + fork-specific docs / Beads context.
 
 ## Consumer integration
 
@@ -84,24 +88,29 @@ git push --force-with-lease
 # 5. Notify consumers to `bun update`
 ```
 
-See `.beads/` for the "Upstream sync runbook" bead with scripted tooling (in progress).
+These upstream-sync notes are retained as historical reference only; there is no active sync-runbook work while the fork is dormant.
 
 ## Project state & roadmap
 
-Tracked in `.beads/` (Dolt-backed). See `bd ready` for currently-actionable work.
+Tracked in `.beads/` (Dolt-backed).
 
-High-level:
+Current state:
 
-- **Epic — Consolidate FHIR clients + Layer B**. Covers all the pieces needed so Polaris and mira can consume `@health-samurai/aidbox-client` (from our fork) with profile-aware CRUD:
-  - `ClientCredentialsAuthProvider` with OAuth2 token caching (Polaris needs).
-  - Auto-pagination helper (Polaris needs).
-  - `importNdjson()` / `pollImportStatus()` bulk wrappers (Polaris needs).
-  - SSRF URL validator (mira needs).
-  - `materialize(name)` variant resolving ID via `$sql` (mira needs).
-  - **Layer B core**: `ProfileClient<T>` / `AidboxClient.withProfile<T>()` — the headline feature.
-  - First consumer migration: Polaris scripts.
+- This fork is retained as dormant infrastructure, not an active delivery track.
+- `master` remains an upstream mirror and `cognovis/next` keeps the fork-specific context (`COGNOVIS.md`, `.beads/`, prior strategy notes).
+- The earlier "consolidate both clients + Layer B" push is preserved as historical context, not the current execution path.
 
-- Companion work tracked in [polaris / mira-adapters `.beads/`](https://github.com/cognovis/mira-adapters) and [mira `.beads/`](https://github.com/cognovis/mira): migration beads to adopt the consolidated client.
+Current execution focus lives elsewhere:
+
+- `cognovis/codegen` — stabilise the fork and improve generator ergonomics.
+- Polaris monorepo — keep adapter work colocated and stabilise `fhir-de` builders before revisiting any wider client consolidation.
+- mira — continue using its current client path unless and until a renewed consolidation effort is justified by real maintenance cost.
+
+Re-open criteria for this fork:
+
+- At least two consumers are again carrying materially duplicated Aidbox client logic.
+- That duplication creates concrete maintenance cost, regressions, or release friction.
+- The packaging and consumer-install story for a shared client is proven, not assumed.
 
 ## Contact
 
