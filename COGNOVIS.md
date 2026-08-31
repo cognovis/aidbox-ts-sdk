@@ -1,117 +1,61 @@
 # cognovis/aidbox-ts-sdk
 
-> Status: dormant as of 2026-04-20.
->
-> Active work on this fork is paused. The current direction keeps adapter and builder work inside the Polaris monorepo and focuses shared infrastructure effort on `cognovis/codegen` plus `fhir-de` builder stabilization. Re-open this initiative only if duplicated Aidbox client logic across multiple consumers becomes a concrete maintenance burden again.
-
-This is a long-lived cognovis fork of [HealthSamurai/aidbox-ts-sdk](https://github.com/HealthSamurai/aidbox-ts-sdk) — the TypeScript SDK for Aidbox / FHIR servers.
-
-## Why we fork
-
-We consume aidbox-ts-sdk (or want to) from two production contexts — the [mira](https://github.com/cognovis/mira) API and the [Polaris / mira-adapters](https://github.com/cognovis/mira-adapters) external integration layer — both of which currently run hand-rolled Aidbox clients. We want to:
-
-1. **Consolidate** the two hand-rolled clients onto upstream aidbox-ts-sdk + a shared extension layer.
-2. **Add profile-aware CRUD** ("Layer B") that orchestrates aidbox-client + [@atomic-ehr/codegen](https://github.com/atomic-ehr/codegen)-generated profile classes.
-3. **Contribute back** everything vendor-neutral (auth providers, pagination helpers, profile-aware client) as upstream PRs.
-
-Track record: our [PR #92](https://github.com/HealthSamurai/aidbox-ts-sdk/pull/92) (`$sql`, `$materialize`, flexible operations) merged cleanly. Upstream already has `// FIXME: sansara#6557 Generate from IG` flagging the profile gap — the work we plan to contribute is a feature they want.
-
-We fork-first so we can **ship in production on our fork while upstream PRs go through review**, rather than blocking on upstream. Once our additions land upstream and the upstream API stabilises for our use cases, consumers migrate off the fork.
-
-## Scope
-
-**In scope** — work that lives in this fork:
-- Auth providers missing upstream (OAuth2 client_credentials with token caching).
-- Utility layers (auto-pagination, SSRF URL validation, `materialize(name)` variant).
-- Bulk operation wrappers (`$import` / `pollImportStatus`).
-- **Profile-aware CRUD (Layer B)** — `AidboxClient.withProfile<T>()` / `ProfileClient<T>` orchestration over [codegen](https://github.com/cognovis/codegen)-generated profile classes.
-- Anything else that closes the gap between our two hand-rolled clients and upstream aidbox-client.
-
-**Out of scope**:
-- FHIR codegen machinery — that lives in [cognovis/codegen](https://github.com/cognovis/codegen). This fork *consumes* codegen output (profile classes); it does not generate them.
-- Aidbox server-side concerns (AccessPolicy authoring, Aidbox Forms, Multibox) unrelated to the client SDK.
+This is a long-lived Cognovis fork of [HealthSamurai/aidbox-ts-sdk](https://github.com/HealthSamurai/aidbox-ts-sdk) — the TypeScript SDK for Aidbox / FHIR servers.
 
 ## Branch model
 
-| Branch | Purpose | Sync |
-|---|---|---|
-| `master` | Pure mirror of [HealthSamurai/aidbox-ts-sdk `master`](https://github.com/HealthSamurai/aidbox-ts-sdk/tree/master). Never commit directly; always fast-forward from upstream. | `git fetch upstream && git checkout master && git merge --ff-only upstream/master && git push origin master` |
-| `cognovis/next` | Our working / integrating branch. All fork-specific features and infra (this file, `.beads/`) live here on top of `master`. | Rebase onto `master` when syncing with upstream. |
-| `cognovis/<consumer>` | Consumer snapshot branches (e.g. `cognovis/polaris`, `cognovis/mira`) — rebase from `cognovis/next`, add consumer-specific scaffolding if needed (built output, consumer-pinned configs). | Rebase from `cognovis/next` before pinning consumers. |
-| `fix/<slug>`, `feat/<slug>` | Short-lived branches cut from pristine `master` for upstream PRs. Never base these on `cognovis/next` — keep the PR diff focused. | Delete after upstream merge or close. |
+**`master` is our own fully integrated main.** Everything we build is merged there, and we release from there. It is explicitly **not** a mirror or a clean abstract of `upstream/master`: it carries upstream plus every contribution of ours that upstream has not merged yet.
 
-### Current long-lived branches
+`cognovis/next` is **not** used — not as a working branch, not for integration, not as a release source. It exists only as history.
 
-- `master` — upstream mirror, currently at `746c422`.
-- `cognovis/next` — upstream + fork-specific docs / Beads context.
+| Branch | Purpose |
+|---|---|
+| `master` | Our integrated main. Contribution branches are merged here; the bridge package is built from here. |
+| `feat/<bead>/<slug>`, `fix/<bead>/<slug>` | One capability or fix each, cut from `upstream/master` so the upstream pull-request diff stays focused. Merged into `master` and simultaneously proposed upstream. |
 
-## Consumer integration
+Cutting a contribution branch from `upstream/master` is a pull-request hygiene rule so Health Samurai sees a small, reviewable diff. It says nothing about the role of our `master`. Never fast-forward `master` onto `upstream/master` as if it were a mirror.
 
-Consumers pin via git URL to a stable consumer branch. The current plan (TBD based on how `dist/` / build output shapes up):
-
-```json
-{
-  "dependencies": {
-    "@health-samurai/aidbox-client": "github:cognovis/aidbox-ts-sdk#cognovis/<consumer>"
-  }
-}
-```
-
-Consumer branches commit pre-built output if `prepare` hooks don't cut it (bun doesn't install a git dep's devDependencies — see the equivalent workaround in [cognovis/codegen `cognovis/mira-adapters`](https://github.com/cognovis/codegen/tree/cognovis/mira-adapters) for the pattern).
-
-## Upstream PR workflow
-
-1. Branch `fix/<slug>` or `feat/<slug>` from `master` — **not** `cognovis/next`. Upstream sees a clean, focused diff.
-2. Implement + test. Commit with conventional-commit message.
-3. Rebase `cognovis/next` on top to pick it up locally.
-4. `gh pr create --repo HealthSamurai/aidbox-ts-sdk --head cognovis:<branch>`.
-5. When upstream merges (squash or rebase), delete the branch. On next upstream sync, `cognovis/next` rebases cleanly and our version of the commit drops out.
-
-For fork-only changes (e.g. `dist/` on consumer branches, opinionated API surface not yet proposed upstream), document in the commit message: `fork-only: <reason>`.
-
-## Upstream sync
+Syncing upstream into our main is an ordinary merge:
 
 ```bash
-# 1. Sync master to upstream
-git checkout master && git fetch upstream && git merge --ff-only upstream/master && git push origin master
-
-# 2. Rebase cognovis/next onto updated master
-git checkout cognovis/next && git rebase master
-
-# 3. Re-run tests + build
-bun test && bun run build
-
-# 4. Rebase each cognovis/<consumer> onto updated cognovis/next
-git checkout cognovis/polaris && git rebase cognovis/next
-git push --force-with-lease
-
-# 5. Notify consumers to `bun update`
+git fetch upstream
+git checkout master
+git merge upstream/master     # never --ff-only, never a reset
 ```
 
-These upstream-sync notes are retained as historical reference only; there is no active sync-runbook work while the fork is dormant.
+When Health Samurai merges one of our contributions, the upstream commit supersedes our own copy of it at the next such sync.
 
-## Project state & roadmap
+## Why we fork
 
-Tracked in `.beads/` (Dolt-backed).
+We consume this SDK from two production contexts — the [mira](https://github.com/cognovis/mira) API and the Polaris adapter layer — and want to:
 
-Current state:
+1. **Consolidate** hand-rolled Aidbox clients onto one shared client.
+2. **Contribute back** everything vendor-neutral as upstream pull requests.
+3. **Stay unblocked** while those pull requests are in review, by releasing our integrated `master` as a temporary package.
 
-- This fork is retained as dormant infrastructure, not an active delivery track.
-- `master` remains an upstream mirror and `cognovis/next` keeps the fork-specific context (`COGNOVIS.md`, `.beads/`, prior strategy notes).
-- The earlier "consolidate both clients + Layer B" push is preserved as historical context, not the current execution path.
+Track record: [PR #92](https://github.com/HealthSamurai/aidbox-ts-sdk/pull/92) (`$sql`, `$materialize`, flexible operations) merged cleanly.
 
-Current execution focus lives elsewhere:
+## Upstream contribution workflow
 
-- `cognovis/codegen` — stabilise the fork and improve generator ergonomics.
-- Polaris monorepo — keep adapter work colocated and stabilise `fhir-de` builders before revisiting any wider client consolidation.
-- mira — continue using its current client path unless and until a renewed consolidation effort is justified by real maintenance cost.
+1. Cut `feat/<bead>/<slug>` or `fix/<bead>/<slug>` from `upstream/master` — never from `master`, so the pull request stays focused.
+2. Implement with tests, review, and verify against a live Aidbox.
+3. Merge the branch into `master` (our integrated main).
+4. Open the pull request: `gh pr create --repo HealthSamurai/aidbox-ts-sdk --base master --head cognovis:<branch>`.
+5. Record base commit, branch, commit SHA and pull-request URL on the owning Bead.
+6. After upstream merges, sync `upstream/master` into `master`; our copy of the commit is superseded.
 
-Re-open criteria for this fork:
+Fork-only changes (bridge publication config, this document) live on `master` alone and are never part of a contribution branch.
 
-- At least two consumers are again carrying materially duplicated Aidbox client logic.
-- That duplication creates concrete maintenance cost, regressions, or release friction.
-- The packaging and consumer-install story for a shared client is proven, not assumed.
+## Bridge package
+
+While contributions are in review, `master` is published as `@cognovis/aidbox-client-upstream` to `https://npm.cognovis.de` so consumers can use the capabilities before upstream ships them. The bridge is an immutable prerelease built from one full `master` commit, recorded together with its source commit and the upstream pull-request references. It is removed once an official `@health-samurai/aidbox-client` release provides the same capability floor.
+
+Lifecycle and removal gate are owned by Bead `aidbox-ts-sdk-dfp`; the consumer contract is owned by `fsdk-1hw` in `fhir-sdk`.
+
+## Project state
+
+Tracked in `.beads/` (Dolt-backed). The fork is active: see the Beads labelled `initiative:canonical-fhir-client`.
 
 ## Contact
 
-Technical: Malte Sussdorff (malte.sussdorff@cognovis.de) — also on Health Samurai Zulip for fast back-and-forth.
+Technical: Malte Sussdorff (malte.sussdorff@cognovis.de) — also on Health Samurai Zulip.
