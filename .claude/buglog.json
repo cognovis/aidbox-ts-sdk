@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "id": "b70a880d-9387-4982-bb66-54ebb3c6df14",
+      "timestamp": "2026-04-09T11:06:07.829233+00:00",
+      "error_pattern": "unknown error",
+      "root_cause": "",
+      "fix": "$(cat <<",
+      "files": [],
+      "tags": []
+    }
+  ]
+}
