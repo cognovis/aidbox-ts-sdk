@@ -1,7 +1,7 @@
 {
-	"name": "@health-samurai/aidbox-client",
-	"version": "0.0.0-alpha.7",
-	"description": "A client library for communicating with Aidbox",
+	"name": "@cognovis/aidbox-client-upstream",
+	"version": "0.0.0-alpha.7.cognovis.1",
+	"description": "Temporary Cognovis bridge build of @health-samurai/aidbox-client, carrying contributions that are still under upstream review.",
 	"author": "Health Samurai",
 	"type": "module",
 	"main": "./dist/src/index.js",
@@ -36,12 +36,13 @@
 		"yaml": "^2.8.3"
 	},
 	"publishConfig": {
-		"access": "public"
+		"registry": "https://npm.cognovis.de",
+		"access": "restricted"
 	},
-	"homepage": "https://github.com/HealthSamurai/aidbox-ts-sdk/tree/master/packages/aidbox-client#readme",
+	"homepage": "https://github.com/cognovis/aidbox-ts-sdk/tree/master/packages/aidbox-client#readme",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/HealthSamurai/aidbox-ts-sdk",
+		"url": "git+https://github.com/cognovis/aidbox-ts-sdk.git",
 		"directory": "packages/aidbox-client"
 	},
 	"devDependencies": {
