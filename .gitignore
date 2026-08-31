@@ -16,6 +16,10 @@ COMPONENT_PATTERNS.md
 # Beads JSONL export is local; Dolt is the source of truth.
 .beads/issues.jsonl
 
+# Local session scratch: intake drafts, conversation handoffs, beads gate lock.
+/.intake/
+/.beads.gate.lock
+
 # BEGIN Library-managed project installs
 /.library.lock.lock
 /.library.lock.workspace-journal.json
