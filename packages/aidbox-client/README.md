@@ -302,7 +302,7 @@ Both methods can throw the `RequestError` class if the error happened before the
 
 ## Aidbox-specific methods
 
-Beside the FHIR interactions, the client exposes methods for Aidbox-specific endpoints.
+Beside the FHIR interactions, the client exposes methods for Aidbox-specific endpoints such as `sql`, `materialize`, `userinfo` and `logout`.
 
 ### Bulk import (`/v2/fhir/$import`)
 
@@ -333,8 +333,6 @@ if (status.isOk()) {
 These are primitives, not a workflow. The client does not poll, retry, validate resources, or interpret partial results — a caller decides when to ask again, what a partial failure means, and whether a submission may be repeated. Aidbox imports are not idempotent, so a submission is never retried by the client; an ambiguous response is returned to the caller as it is. Note that an auth provider may re-send a request that the server rejected as unauthenticated (HTTP 401) before processing it, after refreshing its credentials.
 
 Only a same-origin `/v2/$import/<id>` status location is followed. A missing, malformed, foreign-origin, credential-bearing, or off-path `Content-Location`, one carrying a query or a fragment, or one addressing another operation id than the caller supplied, makes `bulkImport` throw `ErrorResponse` with the server response attached; a tampered or inconsistent handle makes `bulkImportStatus` throw `RequestError` before any authenticated request is sent. Operation ids containing `/` or `\` are refused as well, because Aidbox decodes them before routing and the status path would then not address the import.
-
-Beside the FHIR interactions, the client exposes a few Aidbox-specific endpoints, such as `sql`, `materialize`, `userinfo` and `logout`.
 
 ### Batch validation (`$batch-validate`, Aidbox 2607+)
 
