@@ -1,7 +1,6 @@
 ---
 name: cognovis-forgejo
 description: Inspect Forgejo Actions runs, logs and runners on git.cognovis.de using fgj. Excludes workflow mutation and publishing.
-tracking: git-local
 compatibility: {}
 metadata: {}
 ---

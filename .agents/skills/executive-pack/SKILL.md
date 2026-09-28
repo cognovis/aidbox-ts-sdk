@@ -1,139 +1,162 @@
 ---
 name: executive-pack
-description: Own an approved repository delivery in the invoking session, from Bead admission through review and Session Close.
-tracking: git-local
-requires_standards: [executive-pack, workflow/uat-config-schema, dispatch/model-routing]
+description: Deliver one hosted work order in the invoking session - grilling, tdd implementation, three-model adversarial review with triage, independent verification, one pull request, merge decision and session retro.
+requires_standards: [executive-pack, dispatch/model-routing]
 requires:
-  - skill:bead-execution-loop
-  - skill:context-discovery
+  - script:ccore
   - skill:playwright-cli
-  - skill:session-close
-  - agent:bead-implementer
-  - agent:uat-validator
-  - agent:focus-review-agent
-  - agent:plan-reviewer
-  - agent:doc-changelog-updater
+  - skill:session-retro
+  - agent:implementer
   - standard:executive-pack
 scripts:
-  - path: scripts/landing_policy.py
+  - path: scripts/finding_triage.py
     role: helper
     entrypoint: true
-    language: python
-    output_contract: json-envelope
-  - path: scripts/pack_review_contract.py
-    role: helper
-    entrypoint: false
     language: python
     output_contract: json-envelope
 compatibility: {}
 metadata: {}
 ---
 
-# Repository Delivery
+# Delivery
 
-Consumer-owned helpers are in `scripts/` of the **installed** skill root, not
-the marketplace source path `skills/executive-pack/`. Resolve `$SKILL_ROOT`
-local-first and fail closed if none of these exist:
+The invoking session is the main session (`opus`). It owns one hosted work order from
+grilling to the merge decision and never hands that ownership to another agent. Work
+happens in the delivery worktree the session already owns (the T3 thread worktree, or a
+self-managed linked worktree). Read the work order with `ccore tracker show <ref>`.
 
-1. `<repo>/.agents/skills/executive-pack`
-2. `<repo>/.claude/skills/executive-pack`
-3. `<repo>/skills/executive-pack`
-4. `~/.agents/skills/executive-pack`
-5. `~/.claude/skills/executive-pack`
+The Pocock skills `grilling`, `tdd`, `code-review` and `pr` are installed globally per
+host; `playwright-cli` comes from the Library. Model aliases and their `ccore agent`
+fallback routes are in the injected `dispatch/model-routing` standard: use the native
+subagent with the alias first, the named `ccore agent` route only when the alias is
+unavailable.
 
-Helpers include claim normalization, quick-fix and live-network checks, effort
-classification, workspace guards, Phase 14 scope, the landing-policy resolver,
-and the plan-review gate.
+Resolve the installed helper root local-first and fail closed if none exists:
+`<repo>/.agents/skills/executive-pack`, `<repo>/.claude/skills/executive-pack`,
+`~/.agents/skills/executive-pack`, `~/.claude/skills/executive-pack`. The only helper is
+`scripts/finding_triage.py`.
 
-Own one approved repository delivery in this invoking session. `solo` admits exactly
-one Bead; `executive-pack` admits an ordered Bead list in one repository. The normal
-shape uses one linked worktree. An optional Sub-Pack shape adds isolated execution
-worktrees around one parent integration worktree without creating nested repository
-deliveries. A direct skill invocation and a launcher-created initial prompt enter this
-same repository delivery contract. Never spawn or rename a delivery-owner agent.
+## 1. Grilling (main session, `opus`)
 
-STATUS: BEHAVIORAL ROLE AND REVIEW POLICY. The initiating prompt names actors in a
-readable role paragraph. The delivery owner follows that paragraph and the applicable review reference. Transport can prove that a distinct session ran, but routing tables or
-deterministic model-selection machinery do not interpret the paragraph.
+Run `grilling` against the work order until the intent, the acceptance criteria and the
+boundaries are unambiguous. A question that reading code, running the artifact or
+building a throwaway prototype can answer is answered by the agent, not asked. Only
+product or preference decisions go to the human. When the answers change the work
+order, update it with the intake author check and `ccore tracker update`.
 
-## Admission
+## 2. Implementation (`implementer` subagent on `opus`, with `tdd`)
 
-Validate the explicit mode, repository, linked worktree, unique ordered Beads,
-dependency readiness, proposed TDD seams and prerequisite evidence. Derive seams
-from approved AC/MoC; ask only when an unresolved boundary changes scope or risk.
-Preserve explicit authorization for the same concrete work and local repairs.
-Freeze this contract for the current delivery; edits to it do not change this run.
+Dispatch one `implementer` subagent on `opus` in the delivery worktree. It receives the
+work order, the grilling outcome, the worktree and its base commit, implements with
+`tdd`, runs the affected checks and commits the candidate. It does not review or verify
+its own change.
 
-Name the implementation owner, Reviewer 1, Reviewer 2 and fallback in one role
-paragraph, preserving distinct actors and required different-family final review.
-Missing actors or incomplete answers never imply approval. The invoking session
-owns claims, sequencing, finding disposition, callbacks and Session Close. The
-same logical implementation owner owns all source and repairs; reviewers are read-only.
-Its current session changes only through the compact committed handoff in
-[compact-handoff.md](references/compact-handoff.md). This internal handoff needs no
-human approval. The logical implementation owner remains distinct from the delivery
-owner and reviewers, and exactly one current implementation session may write.
-An optional plan-reviewer advises on an admitted plan and grants no authority.
+## 3. Adversarial review (three models, read-only, in parallel)
 
-Before dispatch read [admission.md](references/admission.md). Call
-scripts/claim_admission.py admit and scripts/landing_policy.py resolve; use their
-typed envelopes, not process exit alone or a prose reconstruction of policy. Record
-the exact Beads, candidate, branches, worktree owner and session identity. Provider
-worktree ownership is declared, never guessed from paths.
+Dispatch three read-only reviewer subagents in parallel, one each on `opus` (a fresh
+context, not the implementer's), `sonnet` and `haiku`. All three get the same
+adversarial brief, with no per-model persona:
 
-## Implement members
+- the stated intent and the acceptance criteria of the work order,
+- the complete diff from the base commit to the candidate,
+- the instruction: find where this change fails its intent - incorrect behaviour,
+  missing cases, and claims the change or its tests do not prove. Return each finding
+  with an id, a severity (`nit`, `low`, `medium`, `high`, `critical`), the paths, the
+  acceptance criterion it concerns (or that it concerns the change's own behaviour) and
+  a one-sentence summary.
 
-For each ordered bead, claim successfully before invoking bead-execution-loop. Start
-the first fresh implementation session from the compact admission packet; later fresh
-sessions start from the preceding compact committed handoff. Disable parent history
-inheritance (`fork_turns="none"` where the native dispatch supports it). The same
-logical implementation owner retains source, TDD, focused MoC and commit responsibility.
-Within a large bead, rotate again after a clean committed handoff before the working
-context stops being compact.
+Each reviewer applies the `code-review` skill's review method and checklist itself; it
+does not start that skill's own subagents. Each reviewer works alone and returns one
+finding list. When a native alias fails, that
+reviewer runs through its `ccore agent` fallback route. When no route works for a
+reviewer, stop and report the dispatch failure; never continue with fewer reviewers and
+never treat a transport failure as a clean review. Record the route each reviewer used.
 
-Use `ccore agent` for implementation dispatch when that transport is selected; a
-native subagent is also valid. Both receive the same compact input and distinct-writer
-constraints.
+The main session merges the three result sets into one deduplicated finding list. This
+review looks for failures against intent; pr-agent covers the standards and conventions
+lens later. Neither a green CI nor a pr-agent approval counts as the verification verdict.
 
-Dispatch a fresh Reviewer 1 context for every member. Give it the live Bead, focused
-evidence, and the member diff plus affected interactions identified by relevant paths
-and evidence. Those paths are review starting points; the reviewer may inspect other
-impacted code independently. Disable parent history inheritance for the reviewer. Send
-accepted findings back to the logical implementation owner in its
-current session, verify focused repairs, then advance without an immediate repeated
-full review. Earlier member diffs remain covered by the final whole Pack review.
+## 4. Triage (one repair round)
 
-Only for a requested Sub-Pack shape: read
-[subpack-progression.md](references/subpack-progression.md) and
-[subpacks.md](references/subpacks.md), then call scripts/subpack_contract.py admit
-before dispatch. Delegated Sub-Pack owners sequence, but do not implement, review,
-finalize or invoke Session Close; distinct member actors and a parent repair owner
-retain those boundaries.
+Run `scripts/finding_triage.py --findings-file <merged.json> --diff-path <path>...
+--ac-ref <AC>...`. Its `repair` set goes back to the same `implementer` subagent in one
+round, all findings at once, ending in one repair commit. Run it again with
+`--review-decisions --repair-rounds-used 1` and one `--repaired <id>` per finding the
+repair commit fixed, to render the deferred and the repaired findings as the "Review
+decisions" section of the pull request body. An unknown repaired id fails the call. A
+second repair round needs a reason the main session states in that section.
 
-## Review and complete
+## 5. Verification (always, by a non-author agent)
 
-After the final member and repository gates, read
-[final-review.md](references/final-review.md). It defines candidate-bound acceptance,
-Reviewer 2, security and project-specific perspectives, allowed not-applicable
-evidence and repair convergence. Call scripts/pack_review_contract.py for its evidence
-seams. Do not drop required perspectives because this entry is shorter.
+Every delivery is verified by an agent that did not write the change. Only evidence from
+running the changed artifact counts: a command, a request or a UI path, with its
+observed result. Tests passing are not verification.
 
-After clean final evidence and focused verification, invoke the installed
-session-close skill exactly once in this session for all delivery beads and the parent worktree.
-Use ccore session-close --help for the live interface and the landing-policy result
-for authority. Never use a skill-bundled fallback when ccore is absent.
+- When the delivered repository has a skill matching `.agents/skills/verify-*`, the
+  verifier uses it.
+- UI changes are driven with `playwright-cli` by a `haiku` subagent. When that alias is
+  unavailable or cannot operate `playwright-cli`, run the verifier through
+  `ccore agent run --model gpt-6-luna --harness codex`.
+- Other changes are verified by a `haiku` subagent that runs the changed command,
+  endpoint or script.
 
-Resume only the returned Session Close ID. Internal review/repair records remain
-caller-owned and are not a Session Close input. Do not duplicate CLI transitions.
-The outer result is a concise blocker, review-pending handoff or terminal
-result with canonical-main SHA and Session Close ID. Publication alone is not terminal
-success; honor human merge authority and report any still-open review gate.
-Cross-repository Topic scheduling and callbacks remain outside this skill.
+The verifier returns one verdict - `PASS`, `PASS+NOTES` or `FAIL` - together with the
+head commit SHA it verified and each run path with its outcome. A new commit on the
+branch invalidates the verdict; verify again. A `FAIL` goes back to the implementer as a
+repair. When the change cannot be run at all, record that reason instead of a verdict;
+such a delivery is never merged by the main session.
 
-## Usage evidence
+## 6. Pull request (`pr`)
 
-Report observed development usage as separate `uncached_input`, `cached_input`, and
-`output` values. When transport telemetry does not expose one of those classes, report
-that value as `unavailable`; do not estimate it. Do not add cached input to an already
-cache-inclusive input total, and do not use usage reporting as a budget or approval
-gate.
+Always open a pull request: write its text with `pr` and publish it with
+`ccore pr ensure --repo <worktree> --summary <text>`, which picks `gh` or `fgj`
+from the remote. `ccore pr ensure` rebases the branch onto the target before its first
+push; when that changes the head commit, verify again (step 5) and update the
+Verification section. Push later repair commits with a plain `git push`. Rerunning
+`ccore pr ensure` on an already published branch can rebase and force-push it; that is a
+history rewrite and needs the user's authorization for this branch. The body carries,
+besides the summary:
+
+- a reference to the work order: `Closes #<n>` when the issue lives in the same
+  repository, the full issue URL otherwise,
+- a **Review decisions** section from step 4,
+- a **Verification** section with the verdict, the verified head SHA and every run path
+  with its outcome,
+- the model route each of the three reviewers used.
+
+pr-agent on Atlas reviews the pull request once, from `.agents/standards/review.md` and
+`AGENTS.md`, and does not re-raise findings listed under Review decisions. It sets
+exactly one `review-risk:*` label and names the head SHA it classified. For each
+pr-agent finding, repair it (then verify again) or add it to Review decisions with the
+reason.
+
+## 7. Merge decision
+
+The main session merges only when all of the following hold for the current head
+commit; otherwise it leaves the pull request open for a human and lists the missing
+evidence:
+
+- the pull request carries exactly one `review-risk:*` label, it is `review-risk:none`,
+  and pr-agent's latest classification comment names the current head commit SHA. A
+  missing, stale or `review-risk:unclassified` label, or any other risk label, leaves
+  the pull request for a human. The main session never sets, changes or removes that
+  label.
+- required checks pass.
+- the Verification section records `PASS` or `PASS+NOTES` for the current head commit
+  SHA.
+- no accepted local finding is unrepaired.
+- the pr-agent review has no unresolved finding that Review decisions does not cover.
+
+An explicit human merge gate from the user or the repository still requires the human.
+
+After a merge, confirm with `ccore tracker show <ref>` that the work order closed and
+close it with `ccore tracker close <ref>` otherwise. Remove a self-managed worktree with
+`worktree-cleanup`; a T3 thread worktree belongs to T3 and stays. Run any
+post-merge postcondition the repository's `AGENTS.md` names.
+
+## 8. Session retro
+
+After the merge, or after handing the pull request to a human, run `session-retro` on
+the finished session. It encodes learnings as structure first and stores them in Open
+Brain and the standards; it does not merge, push, close issues or clean worktrees.
+Report the pull request, its merge state, the verdict and the retro result.
