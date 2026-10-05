@@ -8,15 +8,9 @@ packages/react-components/src/aidbox-ui.code-workspace
 CLAUDE.local.md
 COMPONENT_PATTERNS.md
 
-# Beads / Dolt files (added by bd init)
 .dolt/
 *.db
-.beads-credential-key
 
-# Beads JSONL export is local; Dolt is the source of truth.
-.beads/issues.jsonl
 
-# Local session scratch: intake drafts, conversation handoffs, beads gate lock.
 /.intake/
-/.beads.gate.lock
 
