@@ -132,34 +132,3 @@ GitHub Actions workflows in `.github/workflows/`:
 7. **Add Storybook stories** for new or modified React components.
 8. **Import path**: all react-components are exported from the single `src/index.tsx` entry point.
 9. **Use the `/ui` skill** (Claude Code) when generating UI components to reference the full design system.
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
-## Beads Issue Tracker
-
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-
-## Session Completion
-
-Use the installed session-close skill and `ccore session-close` in the active
-delivery session after required verification and review. The CLI owns integration,
-Bead finalization, synchronization, memory and cleanup for the exact supplied
-resources. Do not run a parallel manual completion recipe. Resume a typed
-retryable stop using its Session Close ID; publication awaiting human review
-is not terminal completion. Report the CLI result and any project-specific
-postconditions. Preserve existing authorization for the same concrete scope.
-<!-- END BEADS INTEGRATION -->

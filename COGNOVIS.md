@@ -11,7 +11,7 @@ This is a long-lived Cognovis fork of [HealthSamurai/aidbox-ts-sdk](https://gith
 | Branch | Purpose |
 |---|---|
 | `master` | Our integrated main. Contribution branches are merged here; the bridge package is built from here. |
-| `feat/<bead>/<slug>`, `fix/<bead>/<slug>` | One capability or fix each, cut from `upstream/master` so the upstream pull-request diff stays focused. Merged into `master` and simultaneously proposed upstream. |
+| `feat/<issue-number>/<slug>`, `fix/<issue-number>/<slug>` | One capability or fix each, cut from `upstream/master` so the upstream pull-request diff stays focused. Merged into `master` and simultaneously proposed upstream. |
 
 Cutting a contribution branch from `upstream/master` is a pull-request hygiene rule so Health Samurai sees a small, reviewable diff. It says nothing about the role of our `master`. Never fast-forward `master` onto `upstream/master` as if it were a mirror.
 
@@ -37,11 +37,11 @@ Track record: [PR #92](https://github.com/HealthSamurai/aidbox-ts-sdk/pull/92) (
 
 ## Upstream contribution workflow
 
-1. Cut `feat/<bead>/<slug>` or `fix/<bead>/<slug>` from `upstream/master` — never from `master`, so the pull request stays focused.
+1. Cut `feat/<issue-number>/<slug>` or `fix/<issue-number>/<slug>` from `upstream/master` — never from `master`, so the pull request stays focused.
 2. Implement with tests, review, and verify against a live Aidbox.
 3. Merge the branch into `master` (our integrated main).
 4. Open the pull request: `gh pr create --repo HealthSamurai/aidbox-ts-sdk --base master --head cognovis:<branch>`.
-5. Record base commit, branch, commit SHA and pull-request URL on the owning Bead.
+5. Record base commit, branch, commit SHA and pull-request URL on the owning hosted issue through `ccore tracker`, using a full `owner/repo#N` reference.
 6. After upstream merges, sync `upstream/master` into `master`; our copy of the commit is superseded.
 
 Fork-only changes (bridge publication config, this document) live on `master` alone and are never part of a contribution branch.
@@ -50,11 +50,11 @@ Fork-only changes (bridge publication config, this document) live on `master` al
 
 While contributions are in review, `master` is published as `@cognovis/aidbox-client-upstream` to `https://npm.cognovis.de` so consumers can use the capabilities before upstream ships them. The bridge is an immutable prerelease built from one full `master` commit, recorded together with its source commit and the upstream pull-request references. It is removed once an official `@health-samurai/aidbox-client` release provides the same capability floor.
 
-Lifecycle and removal gate are owned by Bead `aidbox-ts-sdk-dfp`; the consumer contract is owned by `fsdk-1hw` in `fhir-sdk`.
+Track the lifecycle and removal gate in this repository's hosted issues and the consumer contract in the `fhir-sdk` repository's hosted issues.
 
 ## Project state
 
-Tracked in `.beads/` (Dolt-backed). The fork is active: see the Beads labelled `initiative:canonical-fhir-client`.
+The fork is active. Work lives in hosted issues; use `ccore tracker list --repo cognovis/aidbox-ts-sdk` and full `cognovis/aidbox-ts-sdk#N` references.
 
 ## Contact
 
