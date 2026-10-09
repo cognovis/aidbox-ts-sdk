@@ -37,14 +37,18 @@ jobs:
           mkdir -p site-out/aidbox-client
           cp -a packages/aidbox-client/docs/. site-out/aidbox-client/
 
+      # The cognovis fork only builds the sites; GitHub Pages stays disabled
+      # here (product owner decision 2026-10-09), so only upstream publishes.
       - name: Upload Pages artifact
-        if: success() && github.ref == 'refs/heads/master'
+        if: success() && github.ref == 'refs/heads/master' && github.repository == 'HealthSamurai/aidbox-ts-sdk'
         uses: actions/upload-pages-artifact@v4
         with:
           path: site-out
 
+  # Deploys from upstream only; the fork only builds (Pages stays disabled
+  # here, product owner decision 2026-10-09).
   deploy-pages:
-    if: success() && github.ref == 'refs/heads/master'
+    if: success() && github.ref == 'refs/heads/master' && github.repository == 'HealthSamurai/aidbox-ts-sdk'
     needs: build-sites
 
     permissions:
