@@ -11,10 +11,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+      # Node stays on the latest LTS: required by pnpm and Biome (via pnpm scripts).
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: lts/*
+          check-latest: true
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -26,10 +28,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+      # Node stays on the latest LTS: required by pnpm and pnpm audit.
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: lts/*
+          check-latest: true
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -41,10 +45,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+      # Node stays on the latest LTS: required by pnpm, SWC CLI and tsc.
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: lts/*
+          check-latest: true
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,3 +58,12 @@ jobs:
         run: pnpm -r run --sort build
       - name: Type check
         run: pnpm -r run --no-sort tsc:check
+  toolchains:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      # The check needs only the Python 3 standard library of the runner image.
+      - name: Check toolchain versions
+        run: python3 .agents/standards/toolchains/scripts/check_toolchain_versions.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

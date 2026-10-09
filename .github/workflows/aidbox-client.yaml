@@ -17,10 +17,12 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+      # Node stays on the latest LTS: required by pnpm and Vitest.
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: lts/*
+          check-latest: true
           cache: "pnpm"
 
       - name: Install dependencies

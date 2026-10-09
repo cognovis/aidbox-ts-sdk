@@ -21,7 +21,7 @@ aidbox-fhirpath-lsp → aidbox-client
 
 ## Tech Stack
 
-- **Runtime**: Node.js 24, ES modules, TypeScript 5.8 (strict)
+- **Runtime**: the latest Node.js LTS (pnpm, Vitest, Storybook and TypeDoc require Node), ES modules, TypeScript 5.8 (strict); toolchain versions follow `.agents/standards/toolchains`
 - **Package manager**: pnpm 10.21 (workspaces)
 - **Compilation**: SWC (transpilation) + tsc (declarations only)
 - **Bundling**: Vite 7 (dev/build), Tailwind CSS 4 (styles)
@@ -103,20 +103,30 @@ pnpm test:watch     # Watch mode
 
 React components use Storybook stories as visual tests (61 `.stories.tsx` files).
 
-## Pre-commit Hook
+## Git Hooks
 
-Runs automatically on commit (install with `pnpm hooks`):
+Tracked in `.hooks/`; install with `pnpm hooks`.
+
+**pre-commit** runs on commit:
 
 ```bash
 pnpm -r run lint:check
 pnpm -r run tsc:check
 ```
 
+**pre-push** runs the toolchains check and fails when a toolchain declaration is behind the latest release:
+
+```bash
+python3 .agents/standards/toolchains/scripts/check_toolchain_versions.py
+```
+
+Hosts with a global `core.hooksPath` run it through `scripts/dev/preflight.sh`, which calls `.hooks/pre-push`.
+
 ## CI/CD
 
 GitHub Actions workflows in `.github/workflows/`:
 
-- **common.yaml**: Lint + typecheck on every push
+- **common.yaml**: Lint, audit, typecheck and the toolchains check on every push
 - **aidbox-client.yaml**: Client-specific checks
 - **pages.yaml**: Deploy Storybook + TypeDoc to GitHub Pages (master only)
 - **release.yaml**: NPM publishing

@@ -24,10 +24,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+      # Node stays on the latest LTS: required by pnpm and pnpm/npm publish.
       - name: Install node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: lts/*
+          check-latest: true
           cache: "pnpm"
           registry-url: 'https://registry.npmjs.org/'
       - name: Install dependencies
