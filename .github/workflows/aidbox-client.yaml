@@ -3,17 +3,22 @@ name: Test Aidbox Client
 on:
   push:
     branches: [master]
-  pull_request_target:
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   e2e:
+    # The e2e tests need the BOX_LICENSE secret. Pull requests from forks and
+    # from Dependabot receive no Actions secrets, so they skip this job; the
+    # job never runs untrusted code with a secret or a write token.
+    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -29,13 +34,21 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: packages/aidbox-client
 
+      # Without a license Aidbox redirects every request to its activation page,
+      # so the live tests would fail with HTML responses instead of naming the cause.
       - name: Activate Aidbox
+        env:
+          BOX_LICENSE: ${{ secrets.BOX_LICENSE }}
         run: |
+          if [ -z "$BOX_LICENSE" ]; then
+            echo "::error::The BOX_LICENSE repository Actions secret is empty or missing; the e2e tests need a licensed Aidbox. Pull requests from forks and from Dependabot skip this job because they receive no Actions secrets."
+            exit 1
+          fi
           cat > docker-compose.override.yml << EOF
           services:
             aidbox:
               environment:
-                BOX_LICENSE: ${{ secrets.BOX_LICENSE }}
+                BOX_LICENSE: "$BOX_LICENSE"
           EOF
         working-directory: packages/aidbox-client
 

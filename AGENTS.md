@@ -126,7 +126,7 @@ Hosts with a global `core.hooksPath` run it through `scripts/dev/preflight.sh`, 
 
 GitHub Actions workflows in `.github/workflows/`:
 
-- **common.yaml**: Lint, audit, typecheck and the toolchains check on every push
+- **common.yaml**: Lint, audit, typecheck and the toolchains check on every push. The audit ignores exactly one advisory through `pnpm.auditConfig.ignoreGhsas` in the root `package.json`: GHSA-vfj7-8cjw-p6xm (`braces` <=3.0.3, no patched release), reached only through the build-time `tsc-alias` (`chokidar` 3, `globby` > `fast-glob` > `micromatch`), whose latest release still depends on it. Remove the entry once a patched `braces` or a `tsc-alias` without it exists.
 - **aidbox-client.yaml**: Client-specific checks
 - **pages.yaml**: Deploy Storybook + TypeDoc to GitHub Pages (master only)
 - **release.yaml**: NPM publishing
@@ -142,3 +142,7 @@ GitHub Actions workflows in `.github/workflows/`:
 7. **Add Storybook stories** for new or modified React components.
 8. **Import path**: all react-components are exported from the single `src/index.tsx` entry point.
 9. **Use the `/ui` skill** (Claude Code) when generating UI components to reference the full design system.
+
+## Pull request review
+
+No pr-agent reviews pull requests in this repository (product owner decision, 2026-10-09). Pull requests land through `ccore pr merge` without pr-agent evidence, and the pull request body states this with the line `pr-agent review not required: no pr-agent runs on this repository; AGENTS.md "Pull request review" waives pr-agent evidence for landing (product owner decision 2026-10-09)`. The delivery's local adversarial review and its verification by a non-author agent still apply.

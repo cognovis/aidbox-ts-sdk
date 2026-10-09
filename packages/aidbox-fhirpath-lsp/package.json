@@ -26,7 +26,7 @@
 	"dependencies": {
 		"@atomic-ehr/fhirpath": "0.1.4",
 		"@atomic-ehr/fhirpath-lsp": "0.0.7",
-		"@health-samurai/aidbox-client": "workspace:^"
+		"@health-samurai/aidbox-client": "workspace:@cognovis/aidbox-client-upstream@^"
 	},
 	"peerDependencies": {
 		"@codemirror/lsp-client": "^6.2.0",

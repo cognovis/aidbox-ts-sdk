@@ -23,7 +23,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @health-samurai/aidbox-client --filter @health-samurai/aidbox-fhirpath-lsp run build
+        run: pnpm --filter ./packages/aidbox-client --filter ./packages/aidbox-fhirpath-lsp run build
 
       - name: Build Storybook (react-components)
         run: |
@@ -33,7 +33,7 @@ jobs:
 
       - name: Build TypeDoc (aidbox-client)
         run: |
-          pnpm --filter @health-samurai/aidbox-client run doc
+          pnpm --filter ./packages/aidbox-client run doc
           mkdir -p site-out/aidbox-client
           cp -a packages/aidbox-client/docs/. site-out/aidbox-client/
 
