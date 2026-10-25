@@ -50,6 +50,8 @@ Fork-only changes (bridge publication config, this document) live on `master` al
 
 While contributions are in review, `master` is published as `@cognovis/aidbox-client-upstream` to `https://npm.cognovis.de` so consumers can use the capabilities before upstream ships them. The bridge is an immutable prerelease built from one full `master` commit, recorded together with its source commit and the upstream pull-request references. It is removed once an official `@health-samurai/aidbox-client` release provides the same capability floor.
 
+The bridge is the only package this fork publishes. `@health-samurai/aidbox-fhirpath-lsp` and `@health-samurai/react-components` depend on the client through the workspace alias `workspace:@cognovis/aidbox-client-upstream`, which packing rewrites to the restricted bridge on `https://npm.cognovis.de`. Public npm cannot resolve that dependency, so both packages are marked `"private": true` in this fork and `pnpm publish` refuses them. Health Samurai publishes them from upstream. This is a fork-only change and is never part of a contribution branch.
+
 Track the lifecycle and removal gate in this repository's hosted issues and the consumer contract in the `cognovis/chp` repository's hosted issues, where `@cognovis/fhir-sdk` is developed (`fhir-foundation/packages/fhir-sdk`).
 
 ## Project state
