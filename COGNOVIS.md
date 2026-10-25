@@ -50,7 +50,7 @@ Fork-only changes (bridge publication config, this document) live on `master` al
 
 While contributions are in review, `master` is published as `@cognovis/aidbox-client-upstream` to `https://npm.cognovis.de` so consumers can use the capabilities before upstream ships them. The bridge is an immutable prerelease built from one full `master` commit, recorded together with its source commit and the upstream pull-request references. It is removed once an official `@health-samurai/aidbox-client` release provides the same capability floor.
 
-Track the lifecycle and removal gate in this repository's hosted issues and the consumer contract in the `fhir-sdk` repository's hosted issues.
+Track the lifecycle and removal gate in this repository's hosted issues and the consumer contract in the `cognovis/chp` repository's hosted issues, where `@cognovis/fhir-sdk` is developed (`fhir-foundation/packages/fhir-sdk`).
 
 ## Project state
 
